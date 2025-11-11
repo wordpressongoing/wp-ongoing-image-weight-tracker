@@ -35,3 +35,21 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+/*------------------------ NEW VIEW ONE PAGE ------------------------*/
+/* Contenedor de links Page–Post en la celda (stack) */
+.wpoiwt-usedin {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 420px;
+}
+
+/* Cada <a> de Page–Post con ellipsis en una sola línea */
+.wpoiwt-usedin a {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,11 +1,14 @@
 (function () {
   const BATCH = 25; // posts por lote
   const PAGE_SIZE = 20; // filas por página
+
   const STATE = {
-    rows: [], // dataset completo (todas las filas escaneadas)
+    dict: {}, // key -> image object (merge entre lotes)
+    order: [], // array de keys ordenadas para render
     page: 1, // página visible
   };
 
+  // -------------------- utils --------------------
   function setLoading(isLoading, text) {
     const btn = document.getElementById("wpoiwt-rescan");
     if (!btn) return;
@@ -23,217 +26,171 @@
     const gb = mb / 1024;
     return `${gb.toFixed(2)} GB`;
   }
+
   function renderPagination() {
-    const total = STATE.rows.length;
+    const total = STATE.order.length;
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     STATE.page = Math.min(Math.max(1, STATE.page), totalPages);
 
     const el = document.getElementById("wpoiwt-pagination");
     if (!el) return;
-
     const prevDisabled = STATE.page <= 1 ? "disabled" : "";
     const nextDisabled = STATE.page >= totalPages ? "disabled" : "";
+
     el.innerHTML = `
       <button id="wpoiwt-prev" class="button" ${prevDisabled}>Prev</button>
       <span style="margin:0 8px;">Page ${STATE.page} / ${totalPages}</span>
       <button id="wpoiwt-next" class="button" ${nextDisabled}>Next</button>
     `;
   }
+
   function renderTablePage() {
     const tbody = document.getElementById("wpoiwt-tbody");
     if (!tbody) return;
 
     const start = (STATE.page - 1) * PAGE_SIZE;
     const end = start + PAGE_SIZE;
-    const pageRows = STATE.rows.slice(start, end);
+    const keys = STATE.order.slice(start, end);
 
-    if (!pageRows.length) {
+    if (!keys.length) {
       tbody.innerHTML = `
         <tr><td colspan="5" style="text-align:center; padding:20px;">
           No data. Click "Re-scan".
         </td></tr>`;
       return;
     }
+    // tbody.innerHTML =
+    const rowsHtml = keys
+      .map((k) => {
+        const r = STATE.dict[k];
+        const chip = `<span class="wpoiwt-state wpoiwt-state-${
+          r.status_key
+        }">${escapeHtml(r.status_label)}</span>`;
+        const name = escapeHtml(r.name || "");
+        const format = escapeHtml(r.format || "");
+        const img = `<img src="${r.url}" alt="" style="max-width:120px; height:auto;"/>`;
 
-    tbody.innerHTML = pageRows
-      .map((r) => {
-        const stateChip = `<span class="wpoiwt-state wpoiwt-state-${r.state_key}">${r.state}</span>`;
-        const label = `${r.type} - ${r.title}`;
+        // used_in links (todos como <a>, con ellipsis vía CSS)
+        const usedHtml = (r.used_in || [])
+          .map(
+            (u) =>
+              `<a href="${
+                u.permalink
+              }" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                u.label
+              )}</a>`
+          )
+          .join("");
+
         return `
         <tr>
-          <td>${stateChip}</td>
-          <td>${escapeHtml(label)}</td>
-          <td>${r.image_count}</td>
-          <td>${escapeHtml(humanBytes(r.total_bytes))}</td>
-          <td><a class="button button-small" href="${
-            r.details
-          }">View Details</a></td>
+          <td>${chip}</td>
+          <td><a href="${
+            r.url
+          }" target="_blank" rel="noopener noreferrer">${name}</a></td>
+          <td>${format}</td>
+          <td>${img}</td>
+          <td><div class="wpoiwt-usedin">${usedHtml}</div></td>
+          <td>${escapeHtml(humanBytes(r.bytes))}</td>
         </tr>
       `;
       })
       .join("");
+
+    tbody.innerHTML = rowsHtml;
   }
+
   function escapeHtml(s) {
     const d = document.createElement("div");
     d.textContent = String(s ?? "");
     return d.innerHTML;
   }
-  function appendDataRows(newRows) {
-    if (!Array.isArray(newRows) || !newRows.length) return;
-    STATE.rows = STATE.rows.concat(newRows);
-  }
-  function sortAllRowsGlobally() {
-    const order = { heavy: 0, medium: 1, optimal: 2 };
-    STATE.rows.sort((a, b) => {
-      const pa = order[a.state_key] ?? 9;
-      const pb = order[b.state_key] ?? 9;
-      if (pa !== pb) return pa - pb;
-      return (b.total_bytes || 0) - (a.total_bytes || 0); // desc
-    });
-  }
 
-  function appendRows(html) {
-    const tbody = document.getElementById("wpoiwt-tbody");
-    if (!tbody) return;
-    if (tbody.dataset.cleared !== "1") {
-      tbody.innerHTML = "";
-      tbody.dataset.cleared = "1";
+  // Merge de imágenes por key (une used_in)
+  function mergeImages(list) {
+    for (const it of list) {
+      const k = it.key;
+      if (!STATE.dict[k]) {
+        STATE.dict[k] = it;
+      } else {
+        // unir used_in y usage_count
+        const existing = STATE.dict[k];
+        const map = {};
+        for (const u of existing.used_in || []) map[u.post_id] = u;
+        for (const u of it.used_in || []) map[u.post_id] = u;
+        existing.used_in = Object.values(map);
+        existing.usage_count = existing.used_in.length;
+
+        // mantener bytes/status/format/url/name de la versión con datos (no debería cambiar)
+      }
     }
-    const temp = document.createElement("tbody");
-    temp.innerHTML = html;
-    // mover sus hijos al tbody real:
-    Array.from(temp.children).forEach((tr) => tbody.appendChild(tr));
   }
 
-  async function runBatchScan(offset) {
+  // Orden global: Heavy -> Medium -> Optimal ; bytes desc ; nombre asc
+  function sortKeys() {
+    const orderPrio = { heavy: 0, medium: 1, optimal: 2 };
+    const arr = Object.values(STATE.dict);
+    arr.sort((a, b) => {
+      const pa = orderPrio[a.status_key] ?? 9;
+      const pb = orderPrio[b.status_key] ?? 9;
+      if (pa !== pb) return pa - pb;
+      if ((b.bytes || 0) !== (a.bytes || 0))
+        return (b.bytes || 0) - (a.bytes || 0);
+      return (a.name || "").localeCompare(b.name || "");
+    });
+    STATE.order = arr.map((x) => x.key);
+  }
+
+  // ----- AJAX batch -----
+  async function runBatch(offset) {
     const form = new FormData();
-    form.append("action", "wpoiwt_rescan_batch");
+    form.append("action", "wpoiwt_scan_images_batch");
     form.append("nonce", (window.WPOIWT_VARS && WPOIWT_VARS.nonce) || "");
     form.append("offset", String(offset));
     form.append("limit", String(BATCH));
 
-    const response = await fetch(WPOIWT_VARS.ajax_url, {
+    const res = await fetch(WPOIWT_VARS.ajax_url, {
       method: "POST",
       credentials: "same-origin",
       body: form,
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}`);
-    }
-
-    const apiResponse = await response.json();
-    if (!apiResponse.success) {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    if (!payload.success)
       throw new Error(
-        apiResponse.data?.message || apiResponse.message || "Batch failed"
+        payload.data?.message || payload.message || "Batch failed"
       );
-    }
-    console.log(apiResponse);
-    const responseData = apiResponse.data || {};
-    // if (responseData.html) appendRows(responseData.html);
-    if (Array.isArray(responseData.rows)) {
-      appendDataRows(responseData.rows);
+
+    const data = payload.data || {};
+    if (Array.isArray(data.images)) {
+      mergeImages(data.images);
+      sortKeys();
       renderPagination();
-      renderTablePage(); // re-render con lo acumulado
+      renderTablePage();
     }
-    return responseData.has_more === true ? offset + BATCH : null;
+    return data.has_more === true ? offset + BATCH : null;
   }
 
   async function fullScan() {
-    STATE.rows = [];
+    STATE.dict = {};
+    STATE.order = [];
     STATE.page = 1;
     renderPagination();
     renderTablePage();
 
     let offset = 0;
-    setLoading(true, "Scanning (0%)...");
+    setLoading(true, "Scanning...");
     // Tabla Principal
     const tbody = document.getElementById("wpoiwt-tbody");
     if (tbody) {
       tbody.innerHTML =
-        '<tr><td colspan="5" style="text-align:center; padding:20px;">Starting scan…</td></tr>';
-      // tbody.dataset.cleared = "0";
+        '<tr><td colspan="6" style="text-align:center; padding:20px;">Starting scan…</td></tr>';
     }
 
     while (offset !== null) {
-      setLoading(true, `Scanning (offset ${offset})…`);
-      offset = await runBatchScan(offset);
+      offset = await runBatch(offset);
     }
-    // ordenar y re-render final
-    sortAllRowsGlobally();
-    renderPagination();
-    renderTablePage();
-
     setLoading(false);
-  }
-
-  // ---------- Exportar .xlsx ----------
-  function exportSummaryXLSX() {
-    if (!window.XLSX) {
-      alert("SheetJS not loaded");
-      return;
-    }
-    // dataset: STATE.rows
-    const rows = STATE.rows.map((r) => ({
-      state: r.state,
-      page_post: `${r.type} - ${r.title}`,
-      image_count: r.image_count,
-      total_bytes: r.total_bytes,
-      url: r.page_url,
-    }));
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, "Summary");
-    // autosize (simple heurística)
-    const cols = Object.keys(
-      rows[0] || {
-        state: "",
-        page_post: "",
-        image_count: "",
-        total_bytes: "",
-        url: "",
-      }
-    ).map((k) => ({ wch: Math.max(12, k.length + 2) }));
-    ws["!cols"] = cols;
-
-    XLSX.writeFile(wb, `image-weight-summary-${dateStamp()}.xlsx`);
-  }
-  // ---------- Exportar Detalle ----------
-  function exportDetailsXLSX() {
-    if (!window.XLSX) {
-      alert("SheetJS not loaded");
-      return;
-    }
-    // Los datos los inyectamos en un <script type="application/json" id="wpoiwt-details-data">
-    const el = document.getElementById("wpoiwt-details-data");
-    if (!el) return alert("No detail data");
-    let items = [];
-    try {
-      items = JSON.parse(el.textContent || "[]");
-    } catch (e) {
-      items = [];
-    }
-
-    const rows = items.map((it) => ({
-      file_name: it.name,
-      bytes: it.bytes,
-      state: it.state, // lo ponemos abajo al inyectar
-      image_url: it.url,
-    }));
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, "Details");
-    XLSX.writeFile(wb, `image-weight-details-${dateStamp()}.xlsx`);
-  }
-  // Eventos Export
-  function dateStamp() {
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(
-      d.getHours()
-    )}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
   }
 
   // ---------- Eventos ----------
@@ -246,21 +203,11 @@
         setLoading(false);
         const tbody = document.getElementById("wpoiwt-tbody");
         if (tbody)
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;" class="err-message">${err.message}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;" class="err-message">${err.message}</td></tr>`;
       });
     }
 
-    // Exportar resumen
-    if (e.target && e.target.id === "wpoiwt-export") {
-      e.preventDefault();
-      exportSummaryXLSX();
-    }
-    if (e.target && e.target.id === "wpoiwt-export-details") {
-      e.preventDefault();
-      exportDetailsXLSX();
-    }
-
-    // Paginación
+    // Paginación Prev/Next
     if (e.target && e.target.id === "wpoiwt-prev") {
       e.preventDefault();
       STATE.page = Math.max(1, STATE.page - 1);
@@ -269,13 +216,17 @@
     }
     if (e.target && e.target.id === "wpoiwt-next") {
       e.preventDefault();
-      const totalPages = Math.max(1, Math.ceil(STATE.rows.length / PAGE_SIZE));
+      const totalPages = Math.max(1, Math.ceil(STATE.order.length / PAGE_SIZE));
       STATE.page = Math.min(totalPages, STATE.page + 1);
       renderPagination();
       renderTablePage();
     }
   });
 
-  // Exponer para debug opcional:
-  window.WPOIWT_STATE = STATE;
+  // Auto-scan al cargar página
+  document.addEventListener("DOMContentLoaded", () => {
+    fullScan().catch(() => {
+      /* silencioso */
+    });
+  });
 })();

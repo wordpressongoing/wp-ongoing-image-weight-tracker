@@ -20,9 +20,162 @@ class WPOIWT_Scanner
   public static function init()
   {
     // Re-escanear imágenes
-    add_action('wp_ajax_wpoiwt_rescan', [self::class, 'ajax_rescan']);
+    // add_action('wp_ajax_wpoiwt_rescan', [self::class, 'ajax_rescan']);
     // Re-escanear imágenes en lote
-    add_action('wp_ajax_wpoiwt_rescan_batch', [self::class, 'ajax_rescan_batch']);
+    // add_action('wp_ajax_wpoiwt_rescan_batch', [self::class, 'ajax_rescan_batch']);
+    // 
+    add_action('wp_ajax_wpoiwt_scan_images_batch', [self::class, 'ajax_scan_images_batch']);
+  }
+
+  // Obtener la clave de imagen a partir de la URL (attachment o externa)
+  private static function image_key_from_url($url)
+  {
+    $attachment_id = attachment_url_to_postid($url);
+    if ($attachment_id)
+      return 'att-' . $attachment_id;
+    return 'ext-' . md5($url);
+  }
+
+  // Formateo de extensión/format
+  private static function format_from_url($url)
+  {
+    // Obtener la extensión del archivo a partir de la URL
+    $ext = wpoiwt_guess_ext_from_url($url);
+    // Formatear la extensión a mayúsculas
+    return strtoupper($ext);
+  }
+
+  // Manejar la solicitud AJAX para escanear imágenes
+  public static function ajax_scan_images_batch()
+  {
+    // si no está autorizado como administrador retorna error
+    if (!current_user_can('manage_options')) {
+      wp_send_json_error(['message' => __('Unauthorized', 'wp-ongoing-image-weight-tracker')], 403);
+    }
+
+    check_ajax_referer('wpoiwt_nonce', 'nonce');
+
+    $offset = isset($_POST['offset']) ? max(0, intval($_POST['offset'])) : 0;
+    $limit = isset($_POST['limit']) ? max(1, intval($_POST['limit'])) : 25;
+
+    // Lote de posts publicados
+    $q = new WP_Query([
+      'post_type' => 'any',
+      'post_status' => 'publish',
+      'fields' => 'ids',
+      'posts_per_page' => $limit,
+      'offset' => $offset,
+      'orderby' => 'ID',
+      'order' => 'ASC',
+      'no_found_rows' => false,
+      'ignore_sticky_posts' => true,
+    ]);
+    $ids = $q->posts ?: [];
+
+    // Acumulador por imagen
+    $by_image = [];
+
+    foreach ($ids as $post_id) {
+      // Obtener objeto del post
+      $post_obj = get_post($post_id);
+      if (!$post_obj)
+        continue;
+
+      // Obtener tipo de post y detalles
+      $post_type = get_post_type($post_id);
+      $title = get_the_title($post_id);
+      $permalink = get_permalink($post_id);
+      // Etiqueta tipo - título (Page - X, Post - Y, CPT - Z)
+      $label = sprintf('%s - %s', ucfirst($post_type), $title);
+
+      // Simular renderizado de contenido
+      $content = apply_filters('the_content', $post_obj->post_content);
+      // Extraer imágenes de contenido renderizado
+      $images = self::extract_images_from_html($content);
+
+      // featured
+      $thumb_id = get_post_thumbnail_id($post_id);
+      if ($thumb_id) {
+        $u = wp_get_attachment_url($thumb_id);
+        if ($u)
+          $images[] = $u;
+      }
+
+      $images = wpoiwt_array_unique_urls($images);
+      $images = array_values(array_filter($images, function ($u) {
+        $ext = wpoiwt_guess_ext_from_url($u);
+        return in_array($ext, self::$allowed_exts, true);
+      }));
+
+      foreach ($images as $url) {
+        $key = self::image_key_from_url($url);
+        if (!isset($by_image[$key])) {
+          // calcular bytes una sola vez por imagen (con cache)
+          $bytes = self::get_image_size_bytes_cached($url);
+          if ($bytes === null)
+            continue; // no medible -> omitir
+
+          $by_image[$key] = [
+            'key' => $key,
+            'url' => $url,
+            'name' => basename(parse_url($url, PHP_URL_PATH)),
+            'format' => self::format_from_url($url),
+            'bytes' => (int) $bytes,
+            'used_in' => [],   // se llena abajo
+          ];
+        }
+
+        // Agregar relación de uso (evitar duplicados por post)
+        $by_image[$key]['used_in'][$post_id] = [
+          'post_id' => (int) $post_id,
+          'label' => $label,
+          'permalink' => $permalink,
+        ];
+      }
+    }
+
+    // Construir lista final de imágenes (solo las usadas)
+    $images_out = [];
+    foreach ($by_image as $img) {
+      // descarta claves
+      $usage = array_values($img['used_in']);
+      if (empty($usage))
+        continue;
+
+      $state_key = self::get_state_for_image($img['bytes']);
+      $state_label = self::state_label_image($state_key);
+
+      $images_out[] = [
+        'key' => $img['key'],
+        'url' => $img['url'],
+        'name' => $img['name'],
+        'format' => $img['format'],
+        'bytes' => $img['bytes'],
+        'status_key' => $state_key,
+        'status_label' => $state_label,
+        'used_in' => $usage,
+        'usage_count' => count($usage),
+      ];
+    }
+
+    // Orden: Heavy -> Medium -> Optimal ; bytes DESC
+    $priority = ['heavy' => 0, 'medium' => 1, 'optimal' => 2];
+    usort($images_out, function ($a, $b) use ($priority) {
+      $pa = $priority[$a['status_key']] ?? 9;
+      $pb = $priority[$b['status_key']] ?? 9;
+      if ($pa !== $pb)
+        return $pa - $pb;
+      return $b['bytes'] <=> $a['bytes'];
+    });
+
+    $total_found = intval($q->found_posts);
+    $has_more = ($offset + $limit) < $total_found;
+
+    wp_send_json_success([
+      'images' => $images_out,
+      'has_more' => $has_more,
+      'total' => $total_found,
+    ]);
   }
 
   // Manejar la solicitud AJAX para re-escanear imágenes en lote
