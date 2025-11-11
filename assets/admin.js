@@ -68,9 +68,8 @@
         }">${escapeHtml(r.status_label)}</span>`;
         const name = escapeHtml(r.name || "");
         const format = escapeHtml(r.format || "");
-        const img = `<img src="${r.url}" alt="" style="max-width:120px; height:auto;"/>`;
+        const img = `<img src="${r.url}" alt="" style="width:110px; height:62px;object-fit:cover"/>`;
 
-        // used_in links (todos como <a>, con ellipsis vía CSS)
         const usedHtml = (r.used_in || [])
           .map(
             (u) =>

@@ -43,8 +43,7 @@ final class Wp_Ongoing_Image_Weight_Tracker
   {
     require_once $this->plugin_dir . 'includes/helpers.php';
     require_once $this->plugin_dir . 'includes/class-settings.php';
-    require_once $this->plugin_dir . 'includes/class-scanner.php';
-    require_once $this->plugin_dir . 'includes/class-exporter.php';
+    require_once $this->plugin_dir . 'includes/class-scanner.php';    
   }
 
   // Iniciar plugin (hooks, clases, etc.)

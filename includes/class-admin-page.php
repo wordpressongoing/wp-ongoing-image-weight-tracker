@@ -32,13 +32,6 @@ class WPOIWT_Admin_Page
   public static function dispatch()
   {
     self::render_list_page();
-    // Determinar la vista a mostrar
-    // $view = isset($_GET['view']) ? sanitize_key($_GET['view']) : 'list';
-    // if ($view === 'details') {
-    //   self::render_details_page();
-    // } else {
-    //   self::render_list_page();
-    // }
   }
 
   public static function render_list_page()
@@ -109,13 +102,6 @@ class WPOIWT_Admin_Page
     $plugin = Wp_Ongoing_Image_Weight_Tracker::get_instance();
 
     // Cargar estilos y scripts
-    wp_enqueue_script(
-      'sheetjs',
-      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-      [],
-      '0.18.5',
-      true
-    );
     wp_enqueue_style(
       'wpoiwt-admin',
       $plugin->plugin_url . 'assets/admin.css',
@@ -125,12 +111,12 @@ class WPOIWT_Admin_Page
     wp_enqueue_script(
       'wpoiwt-admin',
       $plugin->plugin_url . 'assets/admin.js',
-      ['sheetjs'], // sin jquery
+      [], // sin jquery
       '1.0.0',
       true
     );
 
-    // Variables JS globales (por si luego usamos AJAX)
+    // Variables JS globales (AJAX)
     wp_localize_script(
       'wpoiwt-admin',
       'WPOIWT_VARS',
