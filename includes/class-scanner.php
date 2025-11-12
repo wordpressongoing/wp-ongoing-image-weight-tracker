@@ -28,6 +28,28 @@ class WPOIWT_Scanner
     );
   }
 
+  /* Devuelve una URL pequeña para el preview (local -> thumbnail; externa -> intenta Photon; fallback: original) */
+  private static function get_preview_src($url)
+  {
+    // Si es adjunto local, usa el tamaño 'thumbnail' (siempre existe)
+    $att_id = attachment_url_to_postid($url);
+    if ($att_id) {
+      $thumb = wp_get_attachment_image_url($att_id, 'thumbnail');
+      if ($thumb)
+        return $thumb;
+    }
+
+    // Si Jetpack Site Accelerator/Photon está activo, pide resize
+    if (function_exists('jetpack_photon_url')) {
+      // 220x124 para retina 2x (lo mostraremos a 110x62)
+      return jetpack_photon_url($url, ['resize' => '220,124']);
+    }
+
+    // Fallback: original
+    return $url;
+  }
+
+
   /** Convierte ID de adjunto a URL si es imagen */
   private static function att_id_to_image_url($att_id)
   {
@@ -226,6 +248,7 @@ class WPOIWT_Scanner
           $by_image[$key] = [
             'key' => $key,
             'url' => $url,
+            'preview_url' => self::get_preview_src($url),
             'name' => basename(parse_url($url, PHP_URL_PATH)),
             'format' => self::format_from_url($url),
             'bytes' => (int) $bytes,
@@ -256,6 +279,7 @@ class WPOIWT_Scanner
       $images_out[] = [
         'key' => $img['key'],
         'url' => $img['url'],
+        'preview_url' => $img['preview_url'],
         'name' => $img['name'],
         'format' => $img['format'],
         'bytes' => $img['bytes'],

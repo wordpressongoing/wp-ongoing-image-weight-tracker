@@ -176,9 +176,9 @@
         }">${escapeHtml(r.status_label)}</span>`;
         const name = escapeHtml(r.name || "");
         const format = escapeHtml(r.format || "");
-        const img = `<img src="${r.url}" alt="" loading="lazy" style="width:110px; height:62px;object-fit:cover"/>`;
+        const img = `<img src="${r.preview_url || r.url}" alt="" loading="lazy" decoding="async" style="width:110px; height:62px;object-fit:cover"/>`;
         const usedHtml = renderUsedInCell(r.used_in || [], k);
-        
+
         return `
         <tr>
           <td>${chip}</td>
