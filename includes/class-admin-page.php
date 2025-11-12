@@ -85,7 +85,7 @@ class WPOIWT_Admin_Page
         </div>
         <div id="wpoiwt-pagination" class="wpoiwt-pagination" style="margin:8px 0;"></div>
       </div>
-      
+
       <!-- Contador de imágenes -->
       <div id="wpoiwt-counter" style="margin:6px 0 4px; font-size:12px; color:#555;"></div>
 
@@ -111,6 +111,9 @@ class WPOIWT_Admin_Page
           </tr>
         </tbody>
       </table>
+    </div>
+    <div id="loader-image-weight-tracker" class="loader-image-weight-tracker">
+      <span class="loader"></span>
     </div>
     <?php
   }

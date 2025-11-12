@@ -176,7 +176,9 @@
         }">${escapeHtml(r.status_label)}</span>`;
         const name = escapeHtml(r.name || "");
         const format = escapeHtml(r.format || "");
-        const img = `<img src="${r.preview_url || r.url}" alt="" loading="lazy" decoding="async" style="width:110px; height:62px;object-fit:cover"/>`;
+        const img = `<img src="${
+          r.preview_url || r.url
+        }" alt="" loading="lazy" decoding="async" style="width:110px; height:62px;object-fit:cover"/>`;
         const usedHtml = renderUsedInCell(r.used_in || [], k);
 
         return `
@@ -253,8 +255,10 @@
     STATE.page = 1;
     renderPagination();
     renderTablePage();
+    const loader = document.querySelector("#loader-image-weight-tracker");
 
     let offset = 0;
+    loader.classList.add("active");
     setLoading(true, "Scanning...");
     // Tabla Principal
     const tbody = document.getElementById("wpoiwt-tbody");
@@ -262,10 +266,7 @@
       tbody.innerHTML =
         '<tr><td colspan="6" style="text-align:center; padding:20px;">Starting scan…</td></tr>';
     }
-    // while (offset !== null) {
-    //   offset = await runBatch(offset);
-    // }
-    // setLoading(false);
+
     try {
       while (offset !== null) {
         offset = await runBatch(offset);
@@ -280,6 +281,7 @@
       }
     } finally {
       setLoading(false);
+      loader.classList.remove("active");
     }
   }
 
