@@ -6,10 +6,6 @@ if (!defined('ABSPATH')) {
 
 class WPOIWT_Scanner
 {
-  // Umbrales por página, peso en bytes (pueden moverse a Settings luego)
-  // const PAGE_OPTIMAL_MAX = 1048576;   // 1 MB
-  // const PAGE_MEDIUM_MAX = 3145728;   // 3 MB
-
   // Umbrales por imagen, peso en bytes
   const IMG_OPTIMAL_MAX = 153600;   // 150 KB
   const IMG_MEDIUM_MAX = 512000;   // 500 KB
@@ -26,7 +22,10 @@ class WPOIWT_Scanner
 
   public static function init()
   {
-    add_action('wp_ajax_wpoiwt_scan_images_batch', [self::class, 'ajax_scan_images_batch']);
+    add_action(
+      'wp_ajax_wpoiwt_scan_images_batch',
+      [self::class, 'ajax_scan_images_batch']
+    );
   }
 
   private static function attachment_id_from_url_cached($url)
@@ -105,9 +104,9 @@ class WPOIWT_Scanner
       // Obtener tipo de post y detalles
       $post_type = get_post_type($post_id);
       $title = get_the_title($post_id);
-      $permalink = get_permalink($post_id);
       // Etiqueta tipo - título (Page - X, Post - Y, CPT - Z)
       $label = sprintf('%s - %s', ucfirst($post_type), $title);
+      $permalink = get_permalink($post_id);
 
       // Simular renderizado de contenido
       $content = apply_filters('the_content', $post_obj->post_content);
@@ -313,6 +312,10 @@ class WPOIWT_Scanner
     // <img>
     $imgs = $dom->getElementsByTagName('img');
     foreach ($imgs as $img) {
+      if (!($img instanceof \DOMElement)) {
+        continue; // Para Intelephense: garantiza DOMElement
+      }
+
       $src = $img->getAttribute('src');
       if ($src)
         $urls[] = $src;
@@ -326,6 +329,9 @@ class WPOIWT_Scanner
     // <picture><source>
     $sources = $dom->getElementsByTagName('source');
     foreach ($sources as $srcNode) {
+      if (!($srcNode instanceof \DOMElement)) {
+        continue;
+      }
       $srcset = $srcNode->getAttribute('srcset');
       if ($srcset) {
         $urls = array_merge($urls, self::pick_srcs_from_srcset($srcset));

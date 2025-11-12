@@ -21,8 +21,7 @@ class WPOIWT_Admin_Page
       __('Image Weight Tracker', 'wp-ongoing-image-weight-tracker'), // Título
       __('Image Weight Tracker', 'wp-ongoing-image-weight-tracker'), // Texto
       'manage_options', // Solo administradores
-      self::MENU_SLUG, // Slug      
-      // [self::class, 'render_page'], // Callback
+      self::MENU_SLUG, // Slug
       [self::class, 'dispatch'], // Callback
       'dashicons-chart-area', // Icono
       80 // Posición en el menú
@@ -45,23 +44,54 @@ class WPOIWT_Admin_Page
       </p>
 
       <div class="wpoiwt-toolbar">
-        <button id="wpoiwt-rescan" class="button button-primary">
+        <button id="wpoiwt-rescan" class="button button-primary wpoiwt-rescan">
           <?php _e('Re-scan', 'wp-ongoing-image-weight-tracker'); ?>
         </button>
+        <!--  -->
+        <div class="wpoiwt-search-container">
+          <input id="wpoiwt-search" type="search"
+            placeholder="<?php esc_attr_e('Search image or page…', 'wp-ongoing-image-weight-tracker'); ?>"
+            style="min-width:220px;" />
+        </div>
       </div>
 
-      <!-- Paginación -->
-      <div id="wpoiwt-pagination" style="margin:8px 0;"></div>
+      <!-- Filtros y Paginación -->
+      <div class="wpoiwt-filters-tablebar">
+        <div class="wpoiwt-filters-container">
+          <div class="wpoiwt-filters">
+            <span><?php _e('Format:', 'wp-ongoing-image-weight-tracker'); ?></span>
+            <select id="wpoiwt-format">
+              <option value="all"><?php _e('All', 'wp-ongoing-image-weight-tracker'); ?></option>
+              <option value="jpg">JPG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WEBP</option>
+              <option value="avif">AVIF</option>
+              <option value="gif">GIF</option>
+              <option value="svg">SVG</option>
+            </select>
+          </div>
+          <div class="wpoiwt-filters">
+            <span><?php _e('Status:', 'wp-ongoing-image-weight-tracker'); ?></span>
+            <button class="button wpoiwt-chip is-active"
+              data-status="all"><?php _e('All', 'wp-ongoing-image-weight-tracker'); ?></button>
+            <button class="button wpoiwt-chip"
+              data-status="heavy"><?php _e('Heavy', 'wp-ongoing-image-weight-tracker'); ?></button>
+            <button class="button wpoiwt-chip"
+              data-status="medium"><?php _e('Medium', 'wp-ongoing-image-weight-tracker'); ?></button>
+            <button class="button wpoiwt-chip"
+              data-status="optimal"><?php _e('Optimal', 'wp-ongoing-image-weight-tracker'); ?></button>
+          </div>
+        </div>
+        <div id="wpoiwt-pagination" class="wpoiwt-pagination" style="margin:8px 0;"></div>
+      </div>
+      
+      <!-- Contador de imágenes -->
+      <div id="wpoiwt-counter" style="margin:6px 0 4px; font-size:12px; color:#555;"></div>
 
       <table class="widefat fixed striped wpoiwt-table">
         <thead>
           <tr>
-            <!-- <th><?php _e('Status', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Page - Post', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Image Count', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Total Image Weight', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Actions', 'wp-ongoing-image-weight-tracker'); ?></th> -->
-
             <th><?php _e('Status', 'wp-ongoing-image-weight-tracker'); ?></th>
             <th><?php _e('Image', 'wp-ongoing-image-weight-tracker'); ?></th>
             <th><?php _e('Format', 'wp-ongoing-image-weight-tracker'); ?></th>
