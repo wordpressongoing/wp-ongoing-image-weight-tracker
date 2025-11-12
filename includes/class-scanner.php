@@ -28,6 +28,92 @@ class WPOIWT_Scanner
     );
   }
 
+  /** Convierte ID de adjunto a URL si es imagen */
+  private static function att_id_to_image_url($att_id)
+  {
+    $att_id = (int) $att_id;
+    if ($att_id <= 0)
+      return null;
+
+    $mime = get_post_mime_type($att_id);
+    if (!is_string($mime) || strpos($mime, 'image/') !== 0) {
+      // permite SVG subido como image/svg+xml
+      if ($mime !== 'image/svg+xml')
+        return null;
+    }
+    $u = wp_get_attachment_url($att_id);
+    return $u ?: null;
+  }
+
+  /** ¿String parece URL? */
+  private static function looks_like_url($s)
+  {
+    if (!is_string($s) || $s === '')
+      return false;
+    if (strpos($s, '//') === 0)
+      return true;               // //cdn...
+    if (preg_match('#^https?:\/\/#i', $s))
+      return true;     // http/https
+    return false;
+  }
+
+  /** Recorrido recursivo para extraer URLs de cualquier valor ACF */
+  private static function collect_urls_from_value($val, array &$out)
+  {
+    // ID numérico aislado => intenta como adjunto imagen
+    if (is_int($val) || (is_string($val) && ctype_digit($val))) {
+      $u = self::att_id_to_image_url((int) $val);
+      if ($u)
+        $out[] = $u;
+      return;
+    }
+
+    // URL string directa
+    if (is_string($val) && self::looks_like_url($val)) {
+      $out[] = $val;
+      return;
+    }
+
+    if (is_array($val)) {
+      // Casos comunes ACF: image (array), gallery (array de arrays)
+      if (isset($val['url']) && self::looks_like_url($val['url'])) {
+        $out[] = $val['url'];
+      }
+      if (isset($val['ID'])) {
+        $u = self::att_id_to_image_url($val['ID']);
+        if ($u)
+          $out[] = $u;
+      }
+      if (isset($val['id'])) {
+        $u = self::att_id_to_image_url($val['id']);
+        if ($u)
+          $out[] = $u;
+      }
+      // Recorre todo lo demás (repeater/flexible/group/clone/galería)
+      foreach ($val as $v) {
+        self::collect_urls_from_value($v, $out);
+      }
+    }
+  }
+
+  /** Extrae imágenes desde ACF del post (raw values, sin formatear) */
+  private static function extract_images_from_acf($post_id)
+  {
+    $urls = [];
+    if (!function_exists('get_fields'))
+      return $urls;
+
+    // segundo parámetro false => raw (IDs en vez de arrays formateados cuando aplique)
+    $data = get_fields($post_id, false);
+    if (empty($data) || !is_array($data))
+      return $urls;
+
+    foreach ($data as $val) {
+      self::collect_urls_from_value($val, $urls);
+    }
+    return $urls;
+  }
+
   private static function attachment_id_from_url_cached($url)
   {
     // Cache persistente WP
@@ -112,6 +198,8 @@ class WPOIWT_Scanner
       $content = apply_filters('the_content', $post_obj->post_content);
       // Extraer imágenes de contenido renderizado
       $images = self::extract_images_from_html($content);
+      // ACF (imagenes fuera de the_content)
+      $images = array_merge($images, self::extract_images_from_acf($post_id));
 
       // featured
       $thumb_id = get_post_thumbnail_id($post_id);
@@ -238,6 +326,8 @@ class WPOIWT_Scanner
 
     $content = apply_filters('the_content', $post->post_content);
     $images = self::extract_images_from_html($content);
+    // ACF (imagenes fuera de the_content)
+    $images = array_merge($images, self::extract_images_from_acf($post_id));
 
     $thumb_id = get_post_thumbnail_id($post_id);
     if ($thumb_id) {
