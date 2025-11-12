@@ -101,7 +101,8 @@
     if (!el) return;
     const total = Object.keys(STATE.dict).length;
     const shown = STATE.order.length;
-    el.textContent = `${shown} shown — ${total} total images`;
+    // el.textContent = `${shown} shown — ${total} total images`;
+    el.textContent = `${shown} items`;
   }
   function renderPagination() {
     const total = STATE.order.length;
@@ -128,7 +129,7 @@
         (u) =>
           `<a href="${
             u.permalink
-          }" target="_blank" rel="noopener noreferrer">${escapeHtml(
+          }" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u.label)}">${escapeHtml(
             u.label
           )}</a>`
       )
@@ -184,9 +185,9 @@
         return `
         <tr>
           <td>${chip}</td>
-          <td><a href="${
+          <td><a data-2 href="${
             r.url
-          }" target="_blank" rel="noopener noreferrer">${name}</a></td>
+          }" target="_blank" rel="noopener noreferrer" title="${r.url}">${name}</a></td>
           <td>${format}</td>
           <td>${img}</td>
           <td>${usedHtml}</td>

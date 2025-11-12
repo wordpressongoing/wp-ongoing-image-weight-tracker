@@ -83,11 +83,14 @@ class WPOIWT_Admin_Page
               data-status="optimal"><?php _e('Optimal', 'wp-ongoing-image-weight-tracker'); ?></button>
           </div>
         </div>
-        <div id="wpoiwt-pagination" class="wpoiwt-pagination" style="margin:8px 0;"></div>
+        <div class="wpoiwt-pagination-container">
+          <div id="wpoiwt-counter" style="margin:6px 0 4px; font-size:12px; color:#555;"></div>
+          <div id="wpoiwt-pagination" class="wpoiwt-pagination" style="margin:8px 0;"></div>
+        </div>
       </div>
 
       <!-- Contador de imágenes -->
-      <div id="wpoiwt-counter" style="margin:6px 0 4px; font-size:12px; color:#555;"></div>
+      <!-- <div id="wpoiwt-counter" style="margin:6px 0 4px; font-size:12px; color:#555;"></div> -->
 
       <table class="widefat fixed striped wpoiwt-table">
         <thead>
