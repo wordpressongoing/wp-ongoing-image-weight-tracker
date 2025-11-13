@@ -1,0 +1,159 @@
+# Copyright (C) 2025 Wordpress Ongoing
+# This file is distributed under the same license as the Image Weight Tracker by WP Ongoing plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Image Weight Tracker by WP Ongoing 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpressongoing.com\n"
+"POT-Creation-Date: 2025-11-13 12:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Manual\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/class-admin-page.php:18
+#: includes/class-admin-page.php:19
+#: includes/class-admin-page.php:30
+msgid "Image Weight Tracker"
+msgstr ""
+
+#: includes/class-admin-page.php:33
+msgid "Analyze images actually used across posts, pages and CPTs."
+msgstr ""
+
+#: includes/class-admin-page.php:38
+#: assets/admin.js
+msgid "Re-scan"
+msgstr ""
+
+#: includes/class-admin-page.php:43
+msgid "Search image or page…"
+msgstr ""
+
+#: includes/class-admin-page.php:51
+msgid "Format:"
+msgstr ""
+
+#: includes/class-admin-page.php:53
+#: includes/class-admin-page.php:63
+msgid "All"
+msgstr ""
+
+#: includes/class-admin-page.php:68
+msgid "Status:"
+msgstr ""
+
+#: includes/class-admin-page.php:72
+msgid "Heavy"
+msgstr ""
+
+#: includes/class-admin-page.php:74
+msgid "Medium"
+msgstr ""
+
+#: includes/class-admin-page.php:76
+msgid "Optimal"
+msgstr ""
+
+#: includes/class-admin-page.php:87
+msgid "Status"
+msgstr ""
+
+#: includes/class-admin-page.php:88
+msgid "Image"
+msgstr ""
+
+#: includes/class-admin-page.php:89
+msgid "Format"
+msgstr ""
+
+#: includes/class-admin-page.php:90
+msgid "Preview"
+msgstr ""
+
+#: includes/class-admin-page.php:91
+msgid "Page – Post"
+msgstr ""
+
+#: includes/class-admin-page.php:92
+msgid "Total Image Weight"
+msgstr ""
+
+#: includes/class-admin-page.php:100
+msgid "No data yet. Click \"Re-scan\" to start analyzing images."
+msgstr ""
+
+#: includes/class-scanner.php:235
+msgid "Unauthorized"
+msgstr ""
+
+#: includes/class-scanner.php:363
+msgid "Optimal"
+msgstr ""
+
+#: includes/class-scanner.php:365
+msgid "Medium"
+msgstr ""
+
+#: includes/class-scanner.php:367
+msgid "Heavy"
+msgstr ""
+
+#: includes/helpers.php:11
+msgid "%s B"
+msgstr ""
+
+#: includes/helpers.php:17
+msgid "%s KB"
+msgstr ""
+
+#: includes/helpers.php:23
+msgid "%s MB"
+msgstr ""
+
+#: includes/helpers.php:29
+msgid "%s GB"
+msgstr ""
+
+#: assets/admin.js
+msgid "Scanning…"
+msgstr ""
+
+#: assets/admin.js
+msgid "Prev"
+msgstr ""
+
+#: assets/admin.js
+msgid "Next"
+msgstr ""
+
+#. translators: 1: current page, 2: total pages
+#: assets/admin.js
+msgid "Page %1$d / %2$d"
+msgstr ""
+
+#: assets/admin.js
+msgid "… +%d more"
+msgstr ""
+
+#: assets/admin.js
+msgid "show less"
+msgstr ""
+
+#: assets/admin.js
+msgid "No data. Click \"Re-scan\"."
+msgstr ""
+
+#: assets/admin.js
+msgid "Starting scan…"
+msgstr ""
+
+#: assets/admin.js
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] ""
+msgstr[1] ""

@@ -32,6 +32,9 @@ final class Wp_Ongoing_Image_Weight_Tracker
     $this->plugin_url = plugin_dir_url(__FILE__);
     $this->plugin_basename = plugin_basename(__FILE__);
 
+    // Cargar traducciones lo antes posible
+    add_action('init', [$this, 'load_textdomain'], 0);
+
     // Cargar archivos base
     $this->includes();
 
@@ -46,16 +49,19 @@ final class Wp_Ongoing_Image_Weight_Tracker
     require_once $this->plugin_dir . 'includes/class-scanner.php';    
   }
 
-  // Iniciar plugin (hooks, clases, etc.)
-  public function init()
+  // Cargar traducciones
+  public function load_textdomain()
   {
-    // Cargar traducciones
     load_plugin_textdomain(
       'wp-ongoing-image-weight-tracker',
       false,
       dirname($this->plugin_basename) . '/languages'
     );
+  }
 
+  // Iniciar plugin (hooks, clases, etc.)
+  public function init()
+  {
     // Inicializar admin (solo usuario admin)
     if (is_admin()) {
       // Inicializar página de administración

@@ -169,29 +169,6 @@ class WPOIWT_Admin_Page
         'wp-ongoing-image-weight-tracker',
         $plugin->plugin_dir . 'languages'
       );
-
-      // 
-      $locale = determine_locale(); // WP 5.0+
-      if (strpos($locale, 'es_') === 0) {
-        $domain = 'wp-ongoing-image-weight-tracker';
-        $catalog = [
-          '' => ['domain' => $domain],
-          // msgid => [ msgstr ]
-          'Scanning…' => ['Escaneando…'],
-          'Re-scan' => ['Re-escanear'],
-          'Prev' => ['Anterior'],
-          'Next' => ['Siguiente'],
-          /* translators: 1: current page, 2: total pages */
-          'Page %1$d / %2$d' => ['Página %1$d / %2$d'],
-          '… +%d more' => ['… +%d más'],
-          'show less' => ['ver menos'],
-          'No data. Click "Re-scan".' => ['Sin datos. Haz clic en "Re-escanear".'],
-          'Starting scan…' => ['Iniciando escaneo…'],
-        ];
-        $inline = 'wp.i18n.setLocaleData(' . wp_json_encode($catalog) . ', "' . esc_js($domain) . '");';
-        // Cargar ANTES que tu admin.js para que __() ya tenga el catálogo:
-        wp_add_inline_script('wpoiwt-admin', $inline, 'before');
-      }
     }
 
   }
