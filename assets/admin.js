@@ -1,4 +1,7 @@
 (function () {
+  // Variables de WP
+  const { __, _n, sprintf } = wp.i18n;
+
   const BATCH = 25; // posts por lote
   // const PAGE_SIZE = 20; // filas por página
   // const PAGE_SIZE = Number(WPOIWT_VARS?.page_size || 20);
@@ -22,7 +25,10 @@
     const btn = document.getElementById("wpoiwt-rescan");
     if (!btn) return;
     btn.disabled = isLoading;
-    btn.textContent = isLoading ? text || "Scanning..." : "Re-scan";
+    // btn.textContent = isLoading ? text || "Scanning..." : "Re-scan";
+    btn.textContent = isLoading
+      ? text || __("Scanning…", "wp-ongoing-image-weight-tracker")
+      : __("Re-scan", "wp-ongoing-image-weight-tracker");
   }
   function humanBytes(bytes) {
     const b = Number(bytes || 0);
@@ -102,7 +108,12 @@
     const total = Object.keys(STATE.dict).length;
     const shown = STATE.order.length;
     // el.textContent = `${shown} shown — ${total} total images`;
-    el.textContent = `${shown} items`;
+
+    // el.textContent = `${shown} items`;
+    el.textContent = sprintf(
+      _n("%d item", "%d items", shown, "wp-ongoing-image-weight-tracker"),
+      shown
+    );
   }
   function renderPagination() {
     const total = STATE.order.length;
@@ -114,10 +125,25 @@
     const prevDisabled = STATE.page <= 1 ? "disabled" : "";
     const nextDisabled = STATE.page >= totalPages ? "disabled" : "";
 
+    // el.innerHTML = `
+    //   <button id="wpoiwt-prev" class="button" ${prevDisabled}>Prev</button>
+    //   <span style="margin:0 8px;">Page ${STATE.page} / ${totalPages}</span>
+    //   <button id="wpoiwt-next" class="button" ${nextDisabled}>Next</button>
+    // `;
     el.innerHTML = `
-      <button id="wpoiwt-prev" class="button" ${prevDisabled}>Prev</button>
-      <span style="margin:0 8px;">Page ${STATE.page} / ${totalPages}</span>
-      <button id="wpoiwt-next" class="button" ${nextDisabled}>Next</button>
+      <button id="wpoiwt-prev" class="button" ${prevDisabled}>${__(
+      "Prev",
+      "wp-ongoing-image-weight-tracker"
+    )}</button>
+      <span style="margin:0 8px;">${sprintf(
+        __("Page %1$d / %2$d", "wp-ongoing-image-weight-tracker"),
+        STATE.page,
+        totalPages
+      )}</span>
+      <button id="wpoiwt-next" class="button" ${nextDisabled}>${__(
+      "Next",
+      "wp-ongoing-image-weight-tracker"
+    )}</button>
     `;
   }
 
@@ -129,9 +155,9 @@
         (u) =>
           `<a href="${
             u.permalink
-          }" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u.label)}">${escapeHtml(
+          }" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
             u.label
-          )}</a>`
+          )}">${escapeHtml(u.label)}</a>`
       )
       .join("");
     const rest = usedArr.slice(MAX_LOCS);
@@ -149,7 +175,12 @@
           )}</a>`
       )
       .join("");
-    const toggle = `<span class="wpoiwt-more-toggle" data-row="${rowKey}" data-open="0">… +${rest.length} more</span>`;
+    // const toggle = `<span class="wpoiwt-more-toggle" data-row="${rowKey}" data-open="0">… +${rest.length} more</span>`;
+    const toggle = `<span class="wpoiwt-more-toggle" data-row="${rowKey}" data-open="0">${sprintf(
+      __("… +%d more", "wp-ongoing-image-weight-tracker"),
+      rest.length
+    )}</span>`;
+
     return `<div class="wpoiwt-usedin">${shown}${hidden}${toggle}</div>`;
   }
 
@@ -162,9 +193,13 @@
     const keys = STATE.order.slice(start, end);
 
     if (!keys.length) {
+      // tbody.innerHTML = `
+      //   <tr><td colspan="6" style="text-align:center; padding:20px;">
+      //     No data. Click "Re-scan".
+      //   </td></tr>`;
       tbody.innerHTML = `
         <tr><td colspan="6" style="text-align:center; padding:20px;">
-          No data. Click "Re-scan".
+          ${__('No data. Click "Re-scan".', "wp-ongoing-image-weight-tracker")}
         </td></tr>`;
       return;
     }
@@ -187,7 +222,9 @@
           <td>${chip}</td>
           <td><a data-2 href="${
             r.url
-          }" target="_blank" rel="noopener noreferrer" title="${r.url}">${name}</a></td>
+          }" target="_blank" rel="noopener noreferrer" title="${
+          r.url
+        }">${name}</a></td>
           <td>${format}</td>
           <td>${img}</td>
           <td>${usedHtml}</td>
@@ -260,12 +297,18 @@
 
     let offset = 0;
     loader.classList.add("active");
-    setLoading(true, "Scanning...");
+    setLoading(true, __("Scanning…", "wp-ongoing-image-weight-tracker"));
     // Tabla Principal
     const tbody = document.getElementById("wpoiwt-tbody");
     if (tbody) {
-      tbody.innerHTML =
-        '<tr><td colspan="6" style="text-align:center; padding:20px;">Starting scan…</td></tr>';
+      // tbody.innerHTML =
+      //   '<tr><td colspan="6" style="text-align:center; padding:20px;">Starting scan…</td></tr>';
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; padding:20px;">
+            ${__("Starting scan…", "wp-ongoing-image-weight-tracker")}
+          </td>
+        </tr>`;
     }
 
     try {
@@ -347,9 +390,14 @@
         // volver a estado cerrado: recalcular cuántos quedan ocultos
         const all = STATE.dict[rowKey]?.used_in || [];
         const rest = Math.max(0, all.length - MAX_LOCS);
-        toggle.textContent = `… +${rest} more`;
+        // toggle.textContent = `… +${rest} more`;
+        toggle.textContent = sprintf(
+          __("… +%d more", "wp-ongoing-image-weight-tracker"),
+          rest
+        );
       } else {
-        toggle.textContent = "show less";
+        // toggle.textContent = "show less";
+        toggle.textContent = __("show less", "wp-ongoing-image-weight-tracker");
       }
       return;
     }

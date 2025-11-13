@@ -147,7 +147,7 @@ class WPOIWT_Admin_Page
     wp_enqueue_script(
       'wpoiwt-admin',
       $plugin->plugin_url . 'assets/admin.js',
-      [], // sin jquery
+      ['wp-i18n'], // sin jquery , incluimos wp-i18n para traducciones JS
       '1.0.0',
       true
     );
@@ -161,5 +161,38 @@ class WPOIWT_Admin_Page
         'nonce' => wp_create_nonce('wpoiwt_nonce')
       ]
     );
+
+    /* Enlazar el text-domain del script a /languages */
+    if (function_exists('wp_set_script_translations')) {
+      wp_set_script_translations(
+        'wpoiwt-admin',
+        'wp-ongoing-image-weight-tracker',
+        $plugin->plugin_dir . 'languages'
+      );
+
+      // 
+      $locale = determine_locale(); // WP 5.0+
+      if (strpos($locale, 'es_') === 0) {
+        $domain = 'wp-ongoing-image-weight-tracker';
+        $catalog = [
+          '' => ['domain' => $domain],
+          // msgid => [ msgstr ]
+          'Scanning…' => ['Escaneando…'],
+          'Re-scan' => ['Re-escanear'],
+          'Prev' => ['Anterior'],
+          'Next' => ['Siguiente'],
+          /* translators: 1: current page, 2: total pages */
+          'Page %1$d / %2$d' => ['Página %1$d / %2$d'],
+          '… +%d more' => ['… +%d más'],
+          'show less' => ['ver menos'],
+          'No data. Click "Re-scan".' => ['Sin datos. Haz clic en "Re-escanear".'],
+          'Starting scan…' => ['Iniciando escaneo…'],
+        ];
+        $inline = 'wp.i18n.setLocaleData(' . wp_json_encode($catalog) . ', "' . esc_js($domain) . '");';
+        // Cargar ANTES que tu admin.js para que __() ya tenga el catálogo:
+        wp_add_inline_script('wpoiwt-admin', $inline, 'before');
+      }
+    }
+
   }
 }
