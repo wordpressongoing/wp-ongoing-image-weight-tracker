@@ -186,7 +186,7 @@ class WPOIWT_Scanner
     $offset = isset($_POST['offset']) ? max(0, intval($_POST['offset'])) : 0;
     $limit = isset($_POST['limit']) ? max(1, intval($_POST['limit'])) : 25;
 
-    // Lote de posts publicados
+    // Lote de posts publicados (TODOS los idiomas)
     $q = new WP_Query([
       'post_type' => 'any',
       'post_status' => 'publish',
@@ -197,6 +197,8 @@ class WPOIWT_Scanner
       'order' => 'ASC',
       'no_found_rows' => false,
       'ignore_sticky_posts' => true,
+      'lang' => '', // Polylang/WPML: incluir TODOS los idiomas
+      'suppress_filters' => false, // Permitir que otros plugins modifiquen la query
     ]);
     $ids = $q->posts ?: [];
 
@@ -274,7 +276,6 @@ class WPOIWT_Scanner
         continue;
 
       $state_key = self::get_state_for_image($img['bytes']);
-      $state_label = self::state_label_image($state_key);
 
       $images_out[] = [
         'key' => $img['key'],
@@ -284,7 +285,6 @@ class WPOIWT_Scanner
         'format' => $img['format'],
         'bytes' => $img['bytes'],
         'status_key' => $state_key,
-        'status_label' => $state_label,
         'used_in' => $usage,
         'usage_count' => count($usage),
       ];

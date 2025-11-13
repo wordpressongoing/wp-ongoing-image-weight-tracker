@@ -48,14 +48,17 @@ msgid "Status:"
 msgstr ""
 
 #: includes/class-admin-page.php:72
+#: assets/admin.js
 msgid "Heavy"
 msgstr ""
 
 #: includes/class-admin-page.php:74
+#: assets/admin.js
 msgid "Medium"
 msgstr ""
 
 #: includes/class-admin-page.php:76
+#: assets/admin.js
 msgid "Optimal"
 msgstr ""
 

@@ -184,6 +184,16 @@
     return `<div class="wpoiwt-usedin">${shown}${hidden}${toggle}</div>`;
   }
 
+  // Traducir estado de imagen según idioma del navegador
+  function translateStatus(statusKey) {
+    const translations = {
+      'heavy': __('Heavy', 'wp-ongoing-image-weight-tracker'),
+      'medium': __('Medium', 'wp-ongoing-image-weight-tracker'),
+      'optimal': __('Optimal', 'wp-ongoing-image-weight-tracker')
+    };
+    return translations[statusKey] || statusKey;
+  }
+
   function renderTablePage() {
     const tbody = document.getElementById("wpoiwt-tbody");
     if (!tbody) return;
@@ -207,9 +217,10 @@
     const rowsHtml = keys
       .map((k) => {
         const r = STATE.dict[k];
+        const statusLabel = translateStatus(r.status_key);
         const chip = `<span class="wpoiwt-state wpoiwt-state-${
           r.status_key
-        }">${escapeHtml(r.status_label)}</span>`;
+        }">${escapeHtml(statusLabel)}</span>`;
         const name = escapeHtml(r.name || "");
         const format = escapeHtml(r.format || "");
         const img = `<img src="${

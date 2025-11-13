@@ -48,14 +48,17 @@ msgid "Status:"
 msgstr "Estado:"
 
 #: includes/class-admin-page.php:72
+#: assets/admin.js
 msgid "Heavy"
 msgstr "Pesada"
 
 #: includes/class-admin-page.php:74
+#: assets/admin.js
 msgid "Medium"
 msgstr "Media"
 
 #: includes/class-admin-page.php:76
+#: assets/admin.js
 msgid "Optimal"
 msgstr "Óptima"
 

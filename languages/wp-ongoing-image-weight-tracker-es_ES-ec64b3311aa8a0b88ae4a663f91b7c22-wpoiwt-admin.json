@@ -36,6 +36,15 @@
             "%d item": [
                 "%d elemento",
                 "%d elementos"
+            ],
+            "Heavy": [
+                "Pesada"
+            ],
+            "Medium": [
+                "Media"
+            ],
+            "Optimal": [
+                "Óptima"
             ]
         }
     }
