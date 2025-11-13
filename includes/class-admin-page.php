@@ -37,15 +37,15 @@ class WPOIWT_Admin_Page
   { ?>
     <div class="wrap wpoiwt-wrap">
       <h1>
-        <?php _e('Image Weight Tracker', 'wp-ongoing-image-weight-tracker'); ?>
+        <?php esc_html_e('Image Weight Tracker', 'wp-ongoing-image-weight-tracker'); ?>
       </h1>
       <p class="description">
-        <?php _e('Analyze images actually used across posts, pages and CPTs.', 'wp-ongoing-image-weight-tracker'); ?>
+        <?php esc_html_e('Analyze images actually used across posts, pages and CPTs.', 'wp-ongoing-image-weight-tracker'); ?>
       </p>
 
       <div class="wpoiwt-toolbar">
         <button id="wpoiwt-rescan" class="button button-primary wpoiwt-rescan">
-          <?php _e('Re-scan', 'wp-ongoing-image-weight-tracker'); ?>
+          <?php esc_html_e('Re-scan', 'wp-ongoing-image-weight-tracker'); ?>
         </button>
         <!--  -->
         <div class="wpoiwt-search-container">
@@ -59,9 +59,9 @@ class WPOIWT_Admin_Page
       <div class="wpoiwt-filters-tablebar">
         <div class="wpoiwt-filters-container">
           <div class="wpoiwt-filters">
-            <span><?php _e('Format:', 'wp-ongoing-image-weight-tracker'); ?></span>
+            <span><?php esc_html_e('Format:', 'wp-ongoing-image-weight-tracker'); ?></span>
             <select id="wpoiwt-format">
-              <option value="all"><?php _e('All', 'wp-ongoing-image-weight-tracker'); ?></option>
+              <option value="all"><?php esc_html_e('All', 'wp-ongoing-image-weight-tracker'); ?></option>
               <option value="jpg">JPG</option>
               <option value="jpeg">JPEG</option>
               <option value="png">PNG</option>
@@ -72,15 +72,15 @@ class WPOIWT_Admin_Page
             </select>
           </div>
           <div class="wpoiwt-filters">
-            <span><?php _e('Status:', 'wp-ongoing-image-weight-tracker'); ?></span>
+            <span><?php esc_html_e('Status:', 'wp-ongoing-image-weight-tracker'); ?></span>
             <button class="button wpoiwt-chip is-active"
-              data-status="all"><?php _e('All', 'wp-ongoing-image-weight-tracker'); ?></button>
+              data-status="all"><?php esc_html_e('All', 'wp-ongoing-image-weight-tracker'); ?></button>
             <button class="button wpoiwt-chip"
-              data-status="heavy"><?php _e('Heavy', 'wp-ongoing-image-weight-tracker'); ?></button>
+              data-status="heavy"><?php esc_html_e('Heavy', 'wp-ongoing-image-weight-tracker'); ?></button>
             <button class="button wpoiwt-chip"
-              data-status="medium"><?php _e('Medium', 'wp-ongoing-image-weight-tracker'); ?></button>
+              data-status="medium"><?php esc_html_e('Medium', 'wp-ongoing-image-weight-tracker'); ?></button>
             <button class="button wpoiwt-chip"
-              data-status="optimal"><?php _e('Optimal', 'wp-ongoing-image-weight-tracker'); ?></button>
+              data-status="optimal"><?php esc_html_e('Optimal', 'wp-ongoing-image-weight-tracker'); ?></button>
           </div>
         </div>
         <div class="wpoiwt-pagination-container">
@@ -95,18 +95,18 @@ class WPOIWT_Admin_Page
       <table class="widefat fixed striped wpoiwt-table">
         <thead>
           <tr>
-            <th><?php _e('Status', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Image', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Format', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Preview', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Page – Post', 'wp-ongoing-image-weight-tracker'); ?></th>
-            <th><?php _e('Total Image Weight', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Status', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Image', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Format', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Preview', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Page – Post', 'wp-ongoing-image-weight-tracker'); ?></th>
+            <th><?php esc_html_e('Total Image Weight', 'wp-ongoing-image-weight-tracker'); ?></th>
           </tr>
         </thead>
         <tbody id="wpoiwt-tbody">
           <tr>
             <td colspan="6" style="text-align:center; padding:20px;">
-              <?php _e(
+              <?php esc_html_e(
                 'No data yet. Click "Re-scan" to start analyzing images.',
                 'wp-ongoing-image-weight-tracker'
               ); ?>

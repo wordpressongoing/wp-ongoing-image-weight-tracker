@@ -32,9 +32,6 @@ final class Wp_Ongoing_Image_Weight_Tracker
     $this->plugin_url = plugin_dir_url(__FILE__);
     $this->plugin_basename = plugin_basename(__FILE__);
 
-    // Cargar traducciones lo antes posible
-    add_action('init', [$this, 'load_textdomain'], 0);
-
     // Cargar archivos base
     $this->includes();
 
@@ -49,25 +46,33 @@ final class Wp_Ongoing_Image_Weight_Tracker
     require_once $this->plugin_dir . 'includes/class-scanner.php';    
   }
 
-  // Cargar traducciones
-  public function load_textdomain()
-  {
-    load_plugin_textdomain(
-      'wp-ongoing-image-weight-tracker',
-      false,
-      dirname($this->plugin_basename) . '/languages'
-    );
-  }
-
   // Iniciar plugin (hooks, clases, etc.)
   public function init()
   {
+    // Aplicar filtros de the_content a nuestro hook personalizado
+    add_filter('wpoiwt_the_content', [$this, 'apply_content_filters']);
+
     // Inicializar admin (solo usuario admin)
     if (is_admin()) {
       // Inicializar página de administración
       require_once $this->plugin_dir . 'includes/class-admin-page.php';
       WPOIWT_Admin_Page::init();
     }
+  }
+
+  // Aplicar los mismos filtros que the_content usa
+  public function apply_content_filters($content)
+  {
+    // Aplicar los filtros estándar de WordPress a the_content
+    $content = wptexturize($content);
+    $content = convert_smilies($content);
+    $content = convert_chars($content);
+    $content = wpautop($content);
+    $content = shortcode_unautop($content);
+    $content = prepend_attachment($content);
+    $content = do_shortcode($content);
+    
+    return $content;
   }
 
   // Obtener la instancia única

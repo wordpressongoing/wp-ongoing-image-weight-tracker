@@ -219,7 +219,7 @@ class WPOIWT_Scanner
       $permalink = get_permalink($post_id);
 
       // Simular renderizado de contenido
-      $content = apply_filters('the_content', $post_obj->post_content);
+      $content = apply_filters('wpoiwt_the_content', $post_obj->post_content);
       // Extraer imágenes de contenido renderizado
       $images = self::extract_images_from_html($content);
       // ACF (imagenes fuera de the_content)
@@ -251,7 +251,7 @@ class WPOIWT_Scanner
             'key' => $key,
             'url' => $url,
             'preview_url' => self::get_preview_src($url),
-            'name' => basename(parse_url($url, PHP_URL_PATH)),
+            'name' => basename(wp_parse_url($url, PHP_URL_PATH)),
             'format' => self::format_from_url($url),
             'bytes' => (int) $bytes,
             'used_in' => [],   // se llena abajo
@@ -348,7 +348,7 @@ class WPOIWT_Scanner
     if (!$post || $post->post_status !== 'publish')
       return [];
 
-    $content = apply_filters('the_content', $post->post_content);
+    $content = apply_filters('wpoiwt_the_content', $post->post_content);
     $images = self::extract_images_from_html($content);
     // ACF (imagenes fuera de the_content)
     $images = array_merge($images, self::extract_images_from_acf($post_id));
@@ -372,7 +372,7 @@ class WPOIWT_Scanner
       if ($bytes === null)
         continue;
 
-      $name = basename(parse_url($url, PHP_URL_PATH));
+      $name = basename(wp_parse_url($url, PHP_URL_PATH));
       $out[] = [
         'url' => $url,
         'name' => $name,
