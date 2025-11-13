@@ -124,15 +124,3 @@ You may use, modify, and distribute it freely under the terms of this license.
 
 Developed by **WordPress Ongoing**  
 With contributions from the WordPress developer community.
-
----
-
-## 🔗 Resources
-
-- [Google PageSpeed Insights](https://pagespeed.web.dev/) - Test your page speed after optimization  
-- [WordPress Image Optimization Guide](https://wordpress.org/support/article/optimization/)  
-- [WebP Converter Plugins](https://wordpress.org/plugins/tags/webp/)  
-
----
-
-**WordPress Ongoing** – Building better WordPress tools.
